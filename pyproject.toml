@@ -1,0 +1,19 @@
+[project]
+name = "igniteroom"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Yosuf20", email = "jyosuf6@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "neo4j>=6.3.1",
+]
+
+[project.scripts]
+igniteroom = "igniteroom:main"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
