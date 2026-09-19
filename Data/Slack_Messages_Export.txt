@@ -1,0 +1,77 @@
+Slack Export - Nexora Technologies Workspace
+Exported: March 15, 2026
+
+======================
+#phoenix-project
+======================
+
+[Mar 9, 10:14 AM] Kavita Desai
+Flagging this for the Phoenix team - we've now had 3 enterprise customers this week complain that reports with large datasets (50k+ rows) are taking 8-10 seconds to load. This is becoming a recurring escalation.
+
+[Mar 9, 10:22 AM] Nikhil Bhatt
+Thanks Kavita, can you send the account names so we can check their specific report sizes? Filing a ticket now.
+
+[Mar 9, 10:35 AM] Kavita Desai
+Sent over DM. Also worth noting - two of them mentioned it got noticeably worse after the last release.
+
+[Mar 9, 11:02 AM] Nikhil Bhatt
+Filed as PHX-201, marked High priority. Will bring to sprint planning Thursday.
+
+[Mar 9, 11:10 AM] Meera Iyer
+I have a hunch this is a rendering issue, not just a backend query problem - we're rendering the full table in the DOM instead of virtualizing it. Will confirm at planning.
+
+[Mar 12, 09:05 AM] Nikhil Bhatt
+Sprint planning notes are up (see Meeting Notes doc) - Meera's leading PHX-201 with virtualized rendering + lazy loading, Karan supporting on the data-fetching side.
+
+[Mar 12, 09:20 AM] Fatima Sheikh
+Makes sense, holding off on the dark mode handoff (PHX-203) until this ships then.
+
+[Mar 12, 14:40 PM] Meera Iyer
+Also think PHX-205 (real-time widget lag) might share the same root cause, will check both together.
+
+======================
+#engineering-general
+======================
+
+[Mar 4, 08:50 AM] Devansh Gupta
+CI/CD has been flaky again - deploys failing ~1 in 5 times, looks like a Docker layer caching issue. Filed PLT-401.
+
+[Mar 5, 16:12 PM] Devansh Gupta
+Discussed in infra review today - fixing this before I provision the Redis instance Raj needs for Atlas.
+
+[Mar 11, 09:40 AM] Raj Malhotra
+@Devansh Gupta any update on the Redis instance for the Atlas session cache work?
+
+[Mar 11, 09:52 AM] Devansh Gupta
+Up now, creds sent to you separately. CI/CD fix went out yesterday too, should be stable.
+
+[Mar 11, 09:53 AM] Raj Malhotra
+Perfect, thank you! Starting the migration this week.
+
+[Mar 13, 15:22 PM] Ananya Reddy
+Heads up - seeing zero push notifications delivered on Android 14 devices since the last OS update, filed CMT-301 as High.
+
+[Mar 13, 15:30 PM] Vikram Choudhary
+Thanks Ananya, this is blocking launch right? Let's make sure it's top of your list this week.
+
+[Mar 13, 15:31 PM] Ananya Reddy
+Yep, on it.
+
+======================
+#support-escalations
+======================
+
+[Feb 27, 11:05 AM] Kavita Desai
+Enterprise client on a custom email domain says password reset emails aren't arriving at all. Filed SUP-501, routing to Atlas team since it could be an email delivery bug rather than a client-side DNS issue.
+
+[Feb 27, 11:40 AM] Aisha Verma
+Taking a look - can you confirm if this is happening for all their users or just some?
+
+[Feb 27, 13:15 PM] Kavita Desai
+Just admins so far, but wanted to flag early given it's a renewal-sensitive account.
+
+[Feb 27, 17:02 PM] Aisha Verma
+Found it - their domain's SPF record doesn't include our mail relay, so our reset emails are getting silently dropped. Not a bug on our end, but sending them a fix doc. Closing SUP-501.
+
+[Mar 9, 10:40 AM] Kavita Desai
+Also posting here in case relevant to eng - same accounts I flagged in #phoenix-project for slow report loads are two of our top-tier customers. Would be good to close PHX-201 soon given renewal timing.

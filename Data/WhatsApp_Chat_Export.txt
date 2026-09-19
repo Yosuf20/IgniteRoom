@@ -1,0 +1,45 @@
+WhatsApp Chat Export
+Group: "Atlas Team 🔐"
+Exported: March 15, 2026
+
+[08/03/26, 09:14:22] Aisha Verma: morning team, getting a few reports from users that login is really slow this week
+[08/03/26, 09:14:55] Aisha Verma: like 2-3 sec delay, mostly seems to happen 9-10am
+[08/03/26, 09:16:03] Raj Malhotra: same window every day?
+[08/03/26, 09:16:40] Aisha Verma: yeah looks like it, checked the logs - lines up with our peak traffic
+[08/03/26, 09:17:02] Raj Malhotra: ok let me dig in, might be the session check hitting the DB too hard
+[08/03/26, 09:18:15] Priya Nair: I can help profile it today if needed
+[08/03/26, 09:20:41] Raj Malhotra: appreciate it, will loop you in after standup
+[08/03/26, 09:45:02] Aisha Verma: filed ATL-104 for this btw, marked it High
+[08/03/26, 09:45:30] Raj Malhotra: 👍 saw it, agree with the priority
+[08/03/26, 11:02:14] Sara Khan: heads up this is now our top priority for the sprint, ATL-106 (SSO) can wait
+[08/03/26, 11:03:00] Raj Malhotra: makes sense, latency is user facing, SSO isn't blocking anyone yet
+[10/03/26, 10:05:12] Raj Malhotra: syncing on this in the weekly call today, will share the fix approach after
+[10/03/26, 15:40:33] Raj Malhotra: update from sync: we're going with a Redis-backed session cache instead of just adding a DB index. more durable fix and Comet will need similar infra anyway
+[10/03/26, 15:41:02] Aisha Verma: nice, makes sense
+[10/03/26, 15:41:50] Priya Nair: will this block my Argon2 rollout (ATL-103)?
+[10/03/26, 15:42:20] Raj Malhotra: no, should be independent, go ahead and ship that on your timeline
+[11/03/26, 09:12:44] Raj Malhotra: asked Devansh to provision the Redis instance, should have it by end of week
+[14/03/26, 17:05:19] Aisha Verma: any update on ATL-104?
+[14/03/26, 17:06:02] Raj Malhotra: Redis instance is up, starting the migration this week, documenting the design in the architecture doc too
+
+Group: "Nexora All Hands 🚀"
+Exported: March 15, 2026
+
+[01/02/26, 10:00:05] Ritu Chawla: great all-hands today everyone, excited about the Q1 roadmap 🙌
+[01/02/26, 10:02:30] Neha Joshi: pumped for the SSO push, had 2 more prospects ask about it this week
+[01/02/26, 10:03:10] Nikhil Bhatt: on it, though team's a bit heads down on a performance issue in Phoenix rn
+[01/02/26, 10:03:44] Kavita Desai: yeah support's been getting complaints from a couple of the bigger accounts about slow report loads
+[01/02/26, 10:04:20] Nikhil Bhatt: yep aware, will prioritize after we scope it properly
+[15/02/26, 14:20:11] Suresh Pillai: reminder - updated employee handbook is live, please check the new remote work section
+[15/02/26, 14:21:00] Divya Menon: thanks Suresh!
+[03/03/26, 09:30:44] Farah Ansari: Comet is looking good for launch, just 2 bugs left on our board
+[03/03/26, 09:31:20] Ritu Chawla: love to hear it, keep me posted Farah
+
+Group: "Sales Team 📈"
+Exported: March 15, 2026
+
+[14/03/26, 11:20:05] Neha Joshi: closed the renewal with the 500-seat client! they specifically want SAML SSO before final sign-off though
+[14/03/26, 11:21:14] Rohit Sharma: nice one! did you flag that to eng?
+[14/03/26, 11:21:50] Neha Joshi: yep, filed as ATL-106, Sara's team has it
+[14/03/26, 16:02:33] Divya Menon: also getting questions from a prospect about dashboard performance for large datasets, anyone know the status?
+[14/03/26, 16:10:09] Rohit Sharma: think Phoenix team is actively working a fix, PHX-201 I believe
