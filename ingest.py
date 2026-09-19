@@ -9,20 +9,71 @@ Usage:
     python ingest.py --fresh   # prune everything first, then re-ingest
 """
 
+from pydantic import Field
+from cognee.shared.data_models import KnowledgeGraph
+
+EdgesType = KnowledgeGraph.model_fields["edges"].annotation
+
+class StrictKG(KnowledgeGraph):
+    edges: EdgesType = Field(
+        ...,
+        description=(
+            "REQUIRED, never empty. Directed relationships between nodes, e.g. reported, "
+            "assigned_to, works_on, member_of, authored, mentions, uses. "
+            "source_node_id and target_node_id must exactly match a node id."
+        ),
+    )
+
 import asyncio
 import sys
 from pathlib import Path
+sys.stdout.reconfigure(encoding="utf-8")
+sys.stderr.reconfigure(encoding="utf-8")
 
 # ── Apply config BEFORE importing cognee ─────────────────────────────────────
 # pyrefly: ignore [missing-import]
 from config import configure_cognee
 configure_cognee()
 
+
 import cognee  # noqa: E402
 
 DATA_DIR = Path(__file__).parent / "Data"
 DATASET_NAME = "nexora"
 
+CUSTOM_PROMPT = """You are building a knowledge graph for a company called Nexora Technologies
+from internal documents: meeting notes, Slack and WhatsApp messages, an employee handbook,
+an architecture document, and spreadsheets (employees, tickets, projects).
+
+Extract entities of these kinds: Person, Team, Project, Ticket, Document, Technology,
+Decision, Meeting, Customer.
+
+Then ALWAYS extract directed relationships between entities, using specific
+lowercase verb-style names such as: reported, assigned_to, works_on, member_of,
+manages, reports_to, authored, mentions, discussed_in, attended, decided, depends_on,
+blocked_by, uses, owns, part_of.
+
+Rules:
+- Every entity should connect to at least one other entity by a relationship, wherever
+  the text supports it. Do not output isolated entities.
+- Do not use vague relationships like "is_related_to" or "has". Choose the most
+  specific verb from the list above.
+- Use the exact same name for the same real-world entity everywhere. Use full names
+  for people (expand first names when the full name appears elsewhere) and exact IDs
+  for tickets (for example JIRA-104).
+- Only extract relationships stated or clearly implied in the text. Do not invent facts.
+"""
+EDGE_RULES = """
+
+OUTPUT FORMAT (critical):
+Return two lists: "nodes" and "edges". The "edges" list MUST NOT be empty.
+Each edge has source_node_id, target_node_id and relationship_name. Both ids must
+exactly equal the id of a node in your nodes list.
+
+Example. Text: "Aisha raised JIRA-104 about login latency; Raj is fixing it."
+nodes: aisha (Person), raj (Person), jira-104 (Ticket)
+edges: aisha -[reported]-> jira-104 ; jira-104 -[assigned_to]-> raj
+"""
 
 # ── File parsers ─────────────────────────────────────────────────────────────
 
@@ -151,7 +202,13 @@ def print_graph_summary() -> None:
                 "CALL db.labels() YIELD label RETURN collect(label) AS labels"
             ).single()
             labels = result["labels"] if result else []
+            rel_types = list(session.run(
+                "MATCH ()-[r]->() RETURN type(r) AS t, count(*) AS n ORDER BY n DESC LIMIT 15"
+            ))
         driver.close()
+        print("     Top relationship types:")
+        for r in rel_types:
+            print(f"        {r['t']}: {r['n']}")
 
         print(f"\n  ✅ Neo4j Graph Summary:")
         print(f"     Nodes        : {node_count:,}")
@@ -220,15 +277,24 @@ async def main(fresh: bool = False) -> None:
     print(f"\n  Added {added}/{len(docs)} documents to Cognee dataset '{DATASET_NAME}'.")
 
     print(f"\n[4/4] 🧠 Running cognify() — building knowledge graph …")
-    print("      (Extracts entities/relationships via Groq → writes to Neo4j.)")
+    print("      (Extracts entities/relationships via Gemini → writes to Neo4j.)")
     print("      This may take several minutes. Do not interrupt.\n")
-    try:
-        await cognee.cognify()
-        print("\n  ✅ cognify() complete!")
-    except Exception as exc:
-        print(f"\n  ✗ cognify() failed: {exc}")
-        print("  Tip: Check your GROQ_API_KEY and Neo4j credentials in .env")
-        raise
+    for attempt in range(1, 4):
+        try:
+            await asyncio.wait_for(
+                cognee.cognify(datasets=[DATASET_NAME], custom_prompt=CUSTOM_PROMPT + EDGE_RULES, graph_model=StrictKG),
+                1200,
+            )
+            print("\n  ✅ cognify() complete!")
+            break
+        except asyncio.TimeoutError:
+            print(f"  ⏱  cognify timed out (attempt {attempt}/3), retrying…")
+            if attempt == 3:
+                raise
+        except Exception as exc:
+            print(f"  ✗ cognify failed (attempt {attempt}/3): {exc}")
+            if attempt == 3:
+                raise
 
     print_graph_summary()
     print("\n" + "=" * 60)
